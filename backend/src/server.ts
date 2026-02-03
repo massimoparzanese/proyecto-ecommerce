@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-
+import authRoutes from './routes/users/auth';
 dotenv.config();
 
 const app = express();
@@ -25,6 +25,7 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'OK', message: 'Backend funcionando 🚀' });
 });
 
+app.use('/auth', authRoutes);
 // Conexión a Mongo
 const MONGO_URI = process.env.MONGO_URI || '';
 const PORT = process.env.PORT || 5000;
