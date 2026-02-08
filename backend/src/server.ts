@@ -15,7 +15,12 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: (origin, callback) => {
+      const allowed = [process.env.CLIENT_URL];
+      if (!origin) return callback(null, true); // allow server-to-server or tools with no origin
+      if (allowed.includes(origin)) return callback(null, true);
+      return callback(new Error('CORS not allowed'));
+    },
     credentials: true,
   })
 );
