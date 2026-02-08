@@ -109,7 +109,7 @@ export const login = async (
     };
     res.cookie('token', token, cookieOptions);
     return res.status(201).json({
-      message: 'User registered',
+      message: 'Usuario autenticado',
       data: { name: user.name, role: user.role },
     });
   } catch (err) {
