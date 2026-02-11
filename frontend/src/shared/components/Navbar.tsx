@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { clearCredentials } from '@/store/authSlice';
+import apiFetch from '@/utils/api';
+import { toast } from 'sonner';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -15,11 +17,22 @@ export default function Navbar() {
     | 'admin'
     | null;
 
-  const handleLogout = () => {
-    // clear redux state (redux-persist will update storage)
-    dispatch(clearCredentials());
-    navigate('/');
-    window.location.reload();
+  const handleLogout = async () => {
+    try {
+      const responese = await apiFetch('auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!responese.ok) {
+        toast.error('Error al cerrar sesión');
+      } else {
+        toast.success('Sesión cerrada');
+        dispatch(clearCredentials());
+        navigate('/');
+      }
+    } catch (error) {
+      toast.error('Error al cerrar sesión');
+    }
   };
 
   return (

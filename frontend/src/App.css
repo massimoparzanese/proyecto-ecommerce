@@ -144,6 +144,25 @@
   }
 }
 
+/* Sonner toast customizations */
+.sonner-toast {
+  border-radius: 0.5rem;
+}
+
+/* Success variant: visible background, white text and subtle border */
+.sonner-success {
+  background: linear-gradient(90deg, #10b981, #06b6d4) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+}
+
+/* Error variant: red background and white text */
+.sonner-error {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
 /**
  * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
  */
