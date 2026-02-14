@@ -3,14 +3,14 @@ import userRepository from '../repositories/user';
 const seedUsersData = [
   {
     name: 'Admin',
-    email: 'admin@example.com',
-    password: 'password123',
+    email: 'admin@tienda.com',
+    password: 'admin',
     role: 'admin',
   },
   {
-    name: 'User One',
-    email: 'user1@example.com',
-    password: 'password123',
+    name: 'Regular User',
+    email: 'user@example.com',
+    password: 'password',
     role: 'user',
   },
 ];

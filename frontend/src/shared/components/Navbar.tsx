@@ -69,7 +69,6 @@ export default function Navbar() {
               <div className="from-primary to-accent flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br shadow">
                 <User className="h-4 w-4 text-white" />
               </div>
-              {isLoggedIn && <span className="text-sm">Mi Cuenta</span>}
             </button>
 
             {showUserMenu && (
