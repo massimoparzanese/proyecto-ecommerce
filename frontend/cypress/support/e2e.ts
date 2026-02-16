@@ -1,3 +1,22 @@
+/* eslint-disable @typescript-eslint/no-namespace -- necessary for Cypress global type augmentation */
+import './commands';
+
+/// <reference types="cypress" />
+/// <reference types="@testing-library/cypress" />
+
+// Optionally add global hooks here
+// Use global namespace augmentation to extend Cypress types.
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      loginProgrammatic(
+        email: string,
+        role?: 'user' | 'admin'
+      ): Cypress.Chainable<void>;
+    }
+  }
+}
 // ***********************************************************
 // This example support/e2e.ts is processed and
 // loaded automatically before your test files.
@@ -15,8 +34,4 @@
 
 import '@testing-library/cypress/add-commands';
 
-// Import commands.js using ES2015 syntax:
-// import './commands'
-
-// Alternatively you can use CommonJS syntax:
-// require('./commands')
+export {};

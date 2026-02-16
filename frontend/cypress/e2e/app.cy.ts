@@ -12,7 +12,8 @@ describe('App E2E Test', () => {
   });
 
   it('should have Vite and React working', () => {
-    cy.contains('Vite').should('exist');
-    cy.contains('React').should('exist');
+    // Assert the app's current hero heading and description
+    cy.get('h1').contains('Descubre Productos Increíbles');
+    cy.get('p').contains('Explora nuestra selección curada');
   });
 });
