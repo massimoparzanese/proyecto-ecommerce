@@ -2,9 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import userRepository from '../repositories/user';
 import { validatePassword, validateEmail } from '../utils/validators';
 import { signToken, verifyToken } from '../utils/jwt';
+import {
+  getUserFromRequest,
+  getCookieOptions,
+  getUserPublicData,
+} from '../utils/auth';
 import { ApiResponse } from '../interfaces/response';
 
-const DURATION_COOKIE = 1000 * 60 * 60; // 1 hour
 // Registrar un nuevo usuario
 export const register = async (
   req: Request,
@@ -57,17 +61,11 @@ export const register = async (
 
     // generar JWT y establecer cookie de sesión
     const token = signToken({ id: newUser.id, role: newUser.role });
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax' as const,
-      maxAge: DURATION_COOKIE, // 1 hour
-    };
-    res.cookie('token', token, cookieOptions);
+    const cookieOptions = getCookieOptions();
     res.cookie('token', token, cookieOptions);
     return res.status(201).json({
       message: 'User registered',
-      data: { email: newUser.email, name: newUser.name, role: newUser.role },
+      data: getUserPublicData(newUser),
     });
   } catch (err) {
     next(err);
@@ -101,16 +99,11 @@ export const login = async (
         .json({ message: 'Credenciales inválidas', data: null });
 
     const token = signToken({ id: user.id, role: user.role });
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax' as const,
-      maxAge: DURATION_COOKIE, // 1 hour
-    };
+    const cookieOptions = getCookieOptions();
     res.cookie('token', token, cookieOptions);
     return res.status(201).json({
       message: 'Usuario autenticado',
-      data: { name: user.name, role: user.role },
+      data: getUserPublicData(user),
     });
   } catch (err) {
     next(err);
@@ -134,8 +127,25 @@ export const refreshToken = async (
   next: NextFunction
 ): Promise<Response<ApiResponse<any>>> => {
   try {
-    // TODO: validar refresh token, generar nuevos tokens
-    return res.status(200).json({ message: 'Token refreshed', data: null });
+    const user = await getUserFromRequest(req);
+    if (!user) {
+      return res.status(401).json({
+        message: 'No hay sesión activa o token inválido',
+        data: null,
+      });
+    }
+
+    // Generar nuevo token
+    const newToken = signToken({ id: user.id, role: user.role });
+    const cookieOptions = getCookieOptions();
+
+    // Establecer nueva cookie
+    res.cookie('token', newToken, cookieOptions);
+
+    return res.status(200).json({
+      message: 'Token renovado exitosamente',
+      data: { expiresIn: '1h' },
+    });
   } catch (err) {
     next(err);
     throw err;
@@ -147,8 +157,24 @@ export const me = async (
   req: Request,
   res: Response<ApiResponse<any>>,
   next: NextFunction
-) => {
-  // TODO: devolver usuario autenticado
+): Promise<Response<ApiResponse<any>>> => {
+  try {
+    const user = await getUserFromRequest(req);
+    if (!user) {
+      return res.status(401).json({
+        message: 'No hay sesión activa o token inválido',
+        data: null,
+      });
+    }
+
+    return res.status(200).json({
+      message: 'Usuario autenticado',
+      data: getUserPublicData(user),
+    });
+  } catch (err) {
+    next(err);
+    throw err;
+  }
 };
 
 export default {
