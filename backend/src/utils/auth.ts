@@ -2,6 +2,7 @@ import { Request } from 'express';
 import { verifyToken } from './jwt';
 import userRepository from '../repositories/user';
 import { IUserDocument } from '../models/user';
+import { NODE_ENV } from '../config';
 
 const DURATION_COOKIE = 1000 * 60 * 60; // 1 hour
 
@@ -24,7 +25,7 @@ export async function getUserFromRequest(
 export function getCookieOptions() {
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: NODE_ENV === 'production',
     sameSite: 'lax' as const,
     maxAge: DURATION_COOKIE,
   };
