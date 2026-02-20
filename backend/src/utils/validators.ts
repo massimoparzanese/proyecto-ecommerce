@@ -1,4 +1,5 @@
 import isEmail from 'validator/lib/isEmail';
+import { IProduct } from '../interfaces/product';
 type Result = { valid: boolean; reasons: string[] };
 
 export function validatePassword(
@@ -44,3 +45,37 @@ export async function validateEmail(email: string): Promise<Result> {
 
   return { valid: reasons.length === 0, reasons };
 }
+
+export const validateProductData = (
+  productData: Partial<IProduct>
+): { valid: boolean; message?: string } => {
+  const { name, description, price, category, stock } = productData;
+
+  if (!name || typeof name !== 'string') {
+    return { valid: false, message: 'Nombre del producto inválido o faltante' };
+  }
+
+  if (!description || typeof description !== 'string') {
+    return {
+      valid: false,
+      message: 'Descripción del producto inválida o faltante',
+    };
+  }
+
+  if (price === undefined || typeof price !== 'number' || price < 0) {
+    return { valid: false, message: 'Precio del producto inválido o faltante' };
+  }
+
+  if (!category || typeof category !== 'string') {
+    return {
+      valid: false,
+      message: 'Categoría del producto inválida o faltante',
+    };
+  }
+
+  if (stock === undefined || typeof stock !== 'number' || stock < 0) {
+    return { valid: false, message: 'Stock del producto inválido o faltante' };
+  }
+
+  return { valid: true };
+};
