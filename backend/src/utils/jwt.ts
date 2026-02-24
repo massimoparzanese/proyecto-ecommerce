@@ -3,11 +3,7 @@ import jwt, {
   type Secret,
   type SignOptions,
 } from 'jsonwebtoken';
-import dotenv from 'dotenv';
-dotenv.config();
-const JWT_SECRET: Secret | undefined = process.env.JWT_SECRET as
-  | Secret
-  | undefined;
+import { JWT_SECRET } from '../config';
 if (!JWT_SECRET) {
   // warn at startup; callers will throw if they try to sign/verify
   console.warn('JWT_SECRET is not set. JWT operations will fail at runtime.');

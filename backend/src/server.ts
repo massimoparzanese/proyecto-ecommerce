@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/users/auth';
+import productRoutes from './routes/products';
+import { DB_URI, PORT, CLIENT_URL } from './config';
 dotenv.config();
 
 const app = express();
@@ -16,7 +18,7 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowed = [process.env.CLIENT_URL];
+      const allowed = [CLIENT_URL];
       if (!origin) return callback(null, true); // allow server-to-server or tools with no origin
       if (allowed.includes(origin)) return callback(null, true);
       return callback(new Error('CORS not allowed'));
@@ -31,12 +33,10 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 app.use('/auth', authRoutes);
-// Conexión a Mongo
-const MONGO_URI = process.env.MONGO_URI || '';
-const PORT = process.env.PORT || 5000;
+app.use('/products', productRoutes);
 
 mongoose
-  .connect(MONGO_URI)
+  .connect(DB_URI)
   .then(() => {
     console.log('🟢 MongoDB conectado');
     app.listen(PORT, () => {

@@ -4,6 +4,7 @@ import Home from './features/users/Home';
 import NotFound from './features/users/NotFound';
 import Register from './features/auth/pages/RegisterPage';
 import Login from './features/auth/pages/LoginPage';
+import ProductDetail from './features/product/pages/ProductDetail';
 
 export const router = createBrowserRouter([
   {
@@ -13,6 +14,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: 'login', element: <Login /> },
       { path: 'register', element: <Register /> },
+      { path: 'product/:id', element: <ProductDetail /> },
       { path: '*', element: <NotFound /> },
     ],
   },
