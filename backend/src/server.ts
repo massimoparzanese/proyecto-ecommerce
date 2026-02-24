@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/users/auth';
+import productRoutes from './routes/products';
 import { DB_URI, PORT, CLIENT_URL } from './config';
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 app.use('/auth', authRoutes);
+app.use('/products', productRoutes);
 
 mongoose
   .connect(DB_URI)

@@ -10,9 +10,7 @@ const seedProductsData = [
     price: 799.99,
     category: 'Electrónica',
     stock: 50,
-    images: [
-      'https://images.samsung.com/is/image/samsung/p6pim/es/galaxy-s21/gallery/es-galaxy-s21-5g-g991-sm-g991bzadeub-368499358?$720_576_PNG$',
-    ],
+    images: ['https://picsum.photos/seed/smartphone/800/800'],
   },
   {
     name: 'Auriculares Sony WH-1000XM4',
@@ -21,7 +19,7 @@ const seedProductsData = [
     price: 349.99,
     category: 'Accesorios',
     stock: 30,
-    images: ['https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg'],
+    images: ['https://picsum.photos/seed/headphones/800/800'],
   },
   {
     name: 'Laptop Dell XPS 13',
@@ -30,9 +28,7 @@ const seedProductsData = [
     price: 1299.99,
     category: 'Computadoras',
     stock: 20,
-    images: [
-      'https://i.dell.com/sites/csimages/Video_Imagery/all/xps-13-9300-laptop.jpg',
-    ],
+    images: ['https://picsum.photos/seed/laptop/800/800'],
   },
   {
     name: 'Cámara Canon EOS R5',
@@ -40,7 +36,7 @@ const seedProductsData = [
     price: 3899.99,
     category: 'Fotografía',
     stock: 10,
-    images: ['https://www.canon.es/media/eos-r5-hero_tcm86-1915976.jpg'],
+    images: ['https://picsum.photos/seed/camera/800/800'],
   },
 ];
 
