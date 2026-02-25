@@ -1,9 +1,9 @@
 import { useNavigate, useParams } from 'react-router';
 import { useState, useEffect } from 'react';
-import Navbar from '@/shared/components/Navbar';
-import { Button } from '@/shared/components/button';
-import { Card, CardContent } from '@/shared/components/card';
-import ReviewSection from '@/shared/components/ReviewSection';
+import Navbar from '@/components/common/Navbar';
+import { Button } from '@/components/common/button';
+import { Card, CardContent } from '@/components/common/card';
+import ReviewSection from '@/components/common/ReviewSection';
 import type { Review, Product } from '@/interfaces/product';
 import { ShoppingCart, ArrowLeft, Package, Shield, Truck } from 'lucide-react';
 import { toast } from 'sonner';
