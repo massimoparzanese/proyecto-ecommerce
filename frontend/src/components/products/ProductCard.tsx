@@ -1,6 +1,6 @@
 import { ShoppingCart } from 'lucide-react';
-import { Button } from '@/shared/components/button';
-import { Card, CardContent, CardFooter } from '@/shared/components/card';
+import { Button } from '@/components/common/button';
+import { Card, CardContent, CardFooter } from '@/components/common/card';
 import { Link } from 'react-router';
 import type { ProductCardProps } from '@/interfaces/product';
 

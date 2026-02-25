@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/shared/components/button';
-import { Input } from '@/shared/components/input';
-import { Label } from '@/shared/components/label';
+import { Button } from '@/components/common/button';
+import { Input } from '@/components/common/input';
+import { Label } from '@/components/common/label';
 import {
   Card,
   CardContent,
@@ -10,7 +10,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/shared/components/card';
+} from '@/components/common/card';
 import { ShoppingCart, Mail, Lock, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDispatch } from 'react-redux';
