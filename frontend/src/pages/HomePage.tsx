@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import ProductList from '../product/components/ProductList';
-import useFetchProducts from '../product/hooks/useFetchProducts';
-import ProductSkeleton from '../product/components/ProductSkeleton';
+import ProductList from '../components/products/ProductList';
+import useFetchProducts from '../hooks/products/useFetchProducts';
+import ProductSkeleton from '../components/products/ProductSkeleton';
 
 export default function Home() {
   const { products, loading, error } = useFetchProducts();
