@@ -26,12 +26,14 @@ export default function ProductDetail() {
 
       try {
         const response = await apiFetch(`/products/${id}`);
-        if (!response.ok) {
-          setProduct(null);
-          setLoading(false);
-          return;
+
+        let data;
+        try {
+          data = await response.json();
+        } catch (jsonError) {
+          throw new Error('Error al procesar los datos del producto');
         }
-        const data = await response.json();
+
         setProduct(data);
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -92,8 +94,6 @@ export default function ProductDetail() {
 
   return (
     <div className="from-muted/30 to-background min-h-screen bg-gradient-to-br">
-      <Navbar />
-
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <Button
           variant="outline"

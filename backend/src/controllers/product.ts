@@ -2,14 +2,19 @@ import { Request, Response } from 'express';
 import ProductModel from '../models/product';
 import { IProduct } from '../interfaces/product';
 import { validateProductData } from '../utils/validators';
+import { NODE_ENV } from '../config';
 
 // Get all products
-export const getAllProducts = async (req: Request, res: Response) => {
+export const getAllProducts = async (_req: Request, res: Response) => {
   try {
     const products = await ProductModel.find();
     res.status(200).json(products);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching products', error });
+    console.error('Error fetching products:', error);
+    res.status(500).json({
+      message: 'Error al obtener los productos',
+      ...(NODE_ENV === 'development' && { error: String(error) }),
+    });
   }
 };
 
@@ -19,11 +24,16 @@ export const getProductById = async (req: Request, res: Response) => {
     const { id } = req.params;
     const product = await ProductModel.findById(id);
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      res.status(404).json({ message: 'Producto no encontrado' });
+      return;
     }
     res.status(200).json(product);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching product', error });
+    console.error('Error fetching product:', error);
+    res.status(500).json({
+      message: 'Error al obtener el producto',
+      ...(NODE_ENV === 'development' && { error: String(error) }),
+    });
   }
 };
 
@@ -35,14 +45,19 @@ export const createProduct = async (req: Request, res: Response) => {
     // Validate product data
     const validation = validateProductData(productData);
     if (!validation.valid) {
-      return res.status(400).json({ message: validation.message });
+      res.status(400).json({ message: validation.message });
+      return;
     }
 
     const newProduct = new ProductModel(productData);
     await newProduct.save();
     res.status(201).json(newProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Error al crear el producto', error });
+    console.error('Error creating product:', error);
+    res.status(500).json({
+      message: 'Error al crear el producto',
+      ...(NODE_ENV === 'development' && { error: String(error) }),
+    });
   }
 };
 
@@ -54,18 +69,24 @@ export const updateProduct = async (req: Request, res: Response) => {
     // Validate product data
     const validation = validateProductData(req.body);
     if (!validation.valid) {
-      return res.status(400).json({ message: validation.message });
+      res.status(400).json({ message: validation.message });
+      return;
     }
 
     const updatedProduct = await ProductModel.findByIdAndUpdate(id, req.body, {
       new: true,
     });
     if (!updatedProduct) {
-      return res.status(404).json({ message: 'Producto no encontrado' });
+      res.status(404).json({ message: 'Producto no encontrado' });
+      return;
     }
     res.status(200).json(updatedProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Error al actualizar el producto', error });
+    console.error('Error updating product:', error);
+    res.status(500).json({
+      message: 'Error al actualizar el producto',
+      ...(NODE_ENV === 'development' && { error: String(error) }),
+    });
   }
 };
 
@@ -75,10 +96,15 @@ export const deleteProduct = async (req: Request, res: Response) => {
     const { id } = req.params;
     const deletedProduct = await ProductModel.findByIdAndDelete(id);
     if (!deletedProduct) {
-      return res.status(404).json({ message: 'Product not found' });
+      res.status(404).json({ message: 'Producto no encontrado' });
+      return;
     }
-    res.status(200).json({ message: 'Product deleted successfully' });
+    res.status(200).json({ message: 'Producto eliminado exitosamente' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting product', error });
+    console.error('Error deleting product:', error);
+    res.status(500).json({
+      message: 'Error al eliminar el producto',
+      ...(NODE_ENV === 'development' && { error: String(error) }),
+    });
   }
 };

@@ -15,7 +15,7 @@ import { ShoppingCart, Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '@/store/authSlice';
-import apiFetch from '@/utils/api';
+import apiFetch, { ApiError } from '@/utils/api';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -24,36 +24,60 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (loading) return; // Prevenir doble submit
+
     setLoading(true);
-    const result = await apiFetch('http://localhost:4000/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-    if (result.ok) {
-      const data = await result.json();
-      toast.success('¡Inicio de sesión exitoso!');
-      console.log('Login data:', data);
-      const role = (data.role as 'user' | 'admin') || 'user';
-      const name = data.name || email.split('@')[0];
-      const id = data.id || '';
+
+    try {
+      const response = await apiFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await response.json();
+
+      // El backend devuelve: { message: string, data: { id, name, email, role } }
+      if (!result.data || !result.data.id || !result.data.role) {
+        throw new Error('Respuesta del servidor incompleta');
+      }
+
+      const { id, name, role } = result.data;
+
+      // Guardar en Redux (el token va en cookie httpOnly)
       dispatch(
-        setCredentials({ user: { id, name, role }, token: data.token ?? null })
+        setCredentials({
+          user: { id, name, role: role as 'user' | 'admin' },
+          token: null, // El token va en cookie httpOnly
+        })
       );
 
+      toast.success('¡Inicio de sesión exitoso!');
+
+      // Redirigir según el rol
       navigate(role === 'admin' ? '/admin' : '/');
-    } else {
-      toast.error('Credenciales inválidas');
+    } catch (error) {
+      console.error('Login error:', error);
+
+      if (error instanceof ApiError) {
+        toast.error(error.message || 'Credenciales inválidas');
+      } else if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('Error al iniciar sesión');
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
   return (
-    <div className="from-primary/10 via-accent/10 to-secondary/10 flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
+    <div className="from-primary/10 via-accent/10 to-secondary/10 flex min-h-screen items-center justify-center bg-linear-to-br p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-1 text-center">
           <div className="mb-4 flex justify-center">
-            <div className="from-primary to-accent flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br">
+            <div className="from-primary to-accent flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br">
               <ShoppingCart className="h-8 w-8 text-white" />
             </div>
           </div>
@@ -98,7 +122,7 @@ export default function Login() {
           <CardFooter className="flex flex-col space-y-4">
             <Button
               type="submit"
-              className="from-primary to-accent w-full bg-gradient-to-r transition-opacity hover:opacity-90"
+              className="from-primary to-accent w-full bg-linear-to-r transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={loading}
             >
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}

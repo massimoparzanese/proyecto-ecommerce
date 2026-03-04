@@ -48,3 +48,38 @@ export interface ProductDetailProps {
     photos: string[];
   };
 }
+
+export interface ProductsTableProps {
+  products: Product[];
+  onEdit: (productId: string) => void;
+  onDelete: (productId: string) => void;
+  isLoading?: boolean;
+}
+
+export interface ProductFormData {
+  name: string;
+  description: string;
+  price: string;
+  category: string;
+  stock: string;
+  images: string[];
+}
+
+export interface ProductFormProps {
+  formData: ProductFormData;
+  categories: string[];
+  categoriesLoading: boolean;
+  onSubmit: (e: { preventDefault: () => void }) => void;
+  onChange: (
+    field: keyof Omit<ProductFormData, 'images'>,
+    value: string
+  ) => void;
+  isNewCategory: boolean;
+  onToggleNewCategory: (value: boolean) => void;
+  newCategoryName: string;
+  onNewCategoryChange: (value: string) => void;
+  onAddImage: () => void;
+  onRemoveImage: (index: number) => void;
+  onImageChange: (index: number, value: string) => void;
+  isSubmitting?: boolean;
+}
