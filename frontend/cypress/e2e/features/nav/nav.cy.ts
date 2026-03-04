@@ -1,6 +1,13 @@
 describe('Navbar', () => {
   beforeEach(() => {
+    // Mock products for homepage
+    cy.intercept('GET', '**/products', {
+      statusCode: 200,
+      body: [],
+    }).as('getProducts');
+
     cy.visit('/');
+    cy.wait('@getProducts');
   });
 
   context('Basic functionality', () => {

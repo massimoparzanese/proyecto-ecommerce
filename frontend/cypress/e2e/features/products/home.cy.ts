@@ -1,8 +1,10 @@
 describe('Home Page - Products Integration', () => {
   beforeEach(() => {
+    // Mock common APIs
+    cy.mockCommonAPIs();
+
     cy.visit('/');
-    // Wait for products to load from real backend
-    cy.get('ul li', { timeout: 10000 }).should('have.length.greaterThan', 0);
+    cy.wait('@getProducts');
   });
 
   describe('Page Load and Hero Section', () => {
@@ -77,16 +79,16 @@ describe('Home Page - Products Integration', () => {
       cy.get('input[placeholder="Buscar productos..."]')
         .clear()
         .type('Samsung');
-      // At least one product should match or none
-      cy.get('body').should('exist');
+      cy.contains('Samsung Galaxy Buds').should('be.visible');
+      cy.contains('Monitor LG').should('not.exist');
     });
 
     it('should show filtered products or no results', () => {
       cy.get('input[placeholder="Buscar productos..."]')
         .clear()
         .type('Monitor');
-      // Results depend on backend data
-      cy.get('body').should('exist');
+      cy.contains('Monitor LG').should('be.visible');
+      cy.contains('Samsung').should('not.exist');
     });
 
     it('should display no results message when search has no matches', () => {
@@ -117,38 +119,42 @@ describe('Home Page - Products Integration', () => {
 
   describe('Navigation Integration', () => {
     it('should navigate to product detail on product click', () => {
+      // mockCommonAPIs ya incluye los mocks de productos individuales
       cy.get('ul li').first().click();
-      cy.url({ timeout: 10000 }).should('include', '/product/');
+      cy.url().should('include', '/product/');
     });
 
     it('should preserve product data when navigating to detail', () => {
       cy.get('li').first().click();
-      cy.url({ timeout: 10000 }).should('include', '/product/');
-      cy.get('h1', { timeout: 10000 }).should('be.visible');
+      cy.url().should('include', '/product/');
+      cy.get('h1').should('contain', 'Samsung Galaxy Buds');
     });
   });
 
   describe('Mobile Responsiveness', () => {
     it('should display properly on mobile devices', () => {
       cy.viewport('iphone-x');
-      cy.visit('/');
-      cy.get('h1', { timeout: 10000 }).should('be.visible');
+      cy.reload();
+      cy.wait('@getProducts');
+      cy.get('h1').should('be.visible');
       cy.get('input[placeholder="Buscar productos..."]').should('be.visible');
-      cy.get('ul li', { timeout: 10000 }).should('exist');
+      cy.get('ul li').should('exist');
     });
 
     it('should display properly on tablets', () => {
       cy.viewport('ipad-2');
-      cy.visit('/');
-      cy.get('h1', { timeout: 10000 }).should('be.visible');
-      cy.get('ul[class*="md:grid-cols-3"]', { timeout: 10000 }).should('exist');
+      cy.reload();
+      cy.wait('@getProducts');
+      cy.get('h1').should('be.visible');
+      cy.get('ul[class*="md:grid-cols-3"]').should('exist');
     });
 
     it('should display properly on desktop', () => {
       cy.viewport('macbook-16');
-      cy.visit('/');
-      cy.get('h1', { timeout: 10000 }).should('be.visible');
-      cy.get('ul[class*="lg:grid-cols-4"]', { timeout: 10000 }).should('exist');
+      cy.reload();
+      cy.wait('@getProducts');
+      cy.get('h1').should('be.visible');
+      cy.get('ul[class*="lg:grid-cols-4"]').should('exist');
     });
   });
 

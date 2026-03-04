@@ -1,8 +1,9 @@
 describe('ProductCard Component', () => {
   beforeEach(() => {
+    cy.mockCommonAPIs();
+
     cy.visit('/');
-    // Wait for real products to load from backend
-    cy.get('ul li', { timeout: 10000 }).should('have.length.greaterThan', 0);
+    cy.wait('@getProducts');
   });
 
   describe('Product Card Display', () => {

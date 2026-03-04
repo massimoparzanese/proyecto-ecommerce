@@ -1,12 +1,11 @@
 describe('ProductDetail Page', () => {
   beforeEach(() => {
-    // First load homepage to get products
+    // Mock all APIs
+    cy.mockCommonAPIs();
+
     cy.visit('/');
-    cy.get('ul li', { timeout: 10000 }).should('have.length.greaterThan', 0);
-    // Click first product to go to detail
+    cy.wait('@getProducts');
     cy.get('ul li').first().click();
-    cy.url({ timeout: 10000 }).should('include', '/product/');
-    cy.get('h1', { timeout: 10000 }).should('be.visible');
   });
 
   describe('Product Detail Display', () => {
@@ -74,22 +73,23 @@ describe('ProductDetail Page', () => {
     beforeEach(() => {
       cy.window().then(win => {
         win.localStorage.removeItem('isLoggedIn');
+        win.localStorage.removeItem('persist:root');
       });
+      cy.reload();
+      // Wait for products to reload, not individual product
+      cy.wait('@getProducts');
     });
 
     it('should show login button when not logged in', () => {
-      cy.reload();
       cy.contains('Iniciar Sesión').should('be.visible');
     });
 
     it('should navigate to login page when clicking login button', () => {
-      cy.reload();
       cy.contains('Iniciar Sesión').click();
       cy.url().should('include', '/login');
     });
 
     it('should show login message text', () => {
-      cy.reload();
       cy.contains('Compra segura y protegida').should('be.visible');
     });
   });
