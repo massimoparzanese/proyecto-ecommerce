@@ -11,9 +11,16 @@ declare namespace Cypress {
     loginProgrammatic(email: string, role?: 'user' | 'admin'): Chainable<void>;
 
     /**
-     * Custom command to setup common API mocks (products, categories)
+     * Custom command to setup common API mocks (products, categories, auth/me)
+     * @param authState - Authentication state: 'authenticated-user', 'authenticated-admin', or 'unauthenticated' (default)
      * @example cy.mockCommonAPIs()
+     * @example cy.mockCommonAPIs('authenticated-admin')
      */
-    mockCommonAPIs(): Chainable<void>;
+    mockCommonAPIs(
+      authState?:
+        | 'authenticated-user'
+        | 'authenticated-admin'
+        | 'unauthenticated'
+    ): Chainable<void>;
   }
 }

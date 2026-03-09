@@ -2,6 +2,8 @@ import { MOCK_OBJECT_IDS } from '../../../fixtures/mockData';
 
 describe('Auth - Register', () => {
   beforeEach(() => {
+    // Mock common APIs including auth/me as unauthenticated by default
+    cy.mockCommonAPIs();
     cy.visit('/register');
   });
 
@@ -151,6 +153,7 @@ describe('Auth - Register', () => {
       // Check localStorage for persisted Redux state
       cy.window().then(win => {
         const persistedState = win.localStorage.getItem('persist:root');
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         expect(persistedState).to.exist;
 
         const parsed = JSON.parse(persistedState!);
@@ -161,6 +164,7 @@ describe('Auth - Register', () => {
           name: 'Jane Doe',
           role: 'user',
         });
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         expect(auth.isLoggedIn).to.be.true;
       });
     });
@@ -203,22 +207,21 @@ describe('Auth - Register', () => {
         },
       }).as('registerError');
 
-      cy.visit('/register'); // Override beforeEach to ensure clean state
-
-      cy.get('#name').type('Test User');
+      // Use the page already loaded by beforeEach
+      cy.get('#name', { timeout: 10000 })
+        .should('be.visible')
+        .type('Test User');
       cy.get('#email').type('test@example.com');
       // Use weak password that will fail backend validation
       cy.get('#password').type('weak');
       cy.get('#confirmPassword').type('weak');
-      cy.get('button[type="submit"]').click({ force: true });
+      cy.get('button[type="submit"]').should('be.visible').click();
 
       cy.wait('@registerError');
 
       // Should display validation reasons in toast (reasons are joined with '. ')
-      cy.get('[data-sonner-toast]', { timeout: 10000 })
-        .should('be.visible')
-        .invoke('text')
-        .should('match', /10 caracteres|mayúsculas|minúsculas/i);
+      // Wait for toast to appear and check its content
+      cy.contains('10 caracteres', { timeout: 10000 }).should('be.visible');
     });
 
     it('should show error for invalid email', () => {
@@ -354,6 +357,70 @@ describe('Auth - Register', () => {
     it('should navigate to home page', () => {
       cy.contains('a', 'Volver al inicio').click();
       cy.location('pathname').should('eq', '/');
+    });
+  });
+
+  describe('Authenticated User Redirect', () => {
+    it('redirects authenticated regular user to home', () => {
+      const userData = { id: 'user123', name: 'Existing User', role: 'user' };
+
+      // Mock auth/me as authenticated
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: userData,
+        },
+      }).as('authMe');
+
+      // Set Redux state as authenticated
+      cy.window().then(win => {
+        const authState = {
+          user: userData,
+          token: null,
+          isLoggedIn: true,
+        };
+
+        win.localStorage.setItem(
+          'persist:root',
+          JSON.stringify({ auth: JSON.stringify(authState) })
+        );
+      });
+
+      cy.visit('/register');
+
+      // Should redirect to home (authenticated users can't access register)
+      cy.location('pathname', { timeout: 5000 }).should('eq', '/');
+    });
+
+    it('redirects authenticated admin to admin dashboard', () => {
+      const adminData = { id: 'admin123', name: 'Admin User', role: 'admin' };
+
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: adminData,
+        },
+      }).as('authMe');
+
+      cy.window().then(win => {
+        const authState = {
+          user: adminData,
+          token: null,
+          isLoggedIn: true,
+        };
+
+        win.localStorage.setItem(
+          'persist:root',
+          JSON.stringify({ auth: JSON.stringify(authState) })
+        );
+      });
+
+      cy.visit('/register');
+
+      // Should redirect to admin (authenticated admins can't access register)
+      cy.location('pathname', { timeout: 5000 }).should('eq', '/admin');
     });
   });
 

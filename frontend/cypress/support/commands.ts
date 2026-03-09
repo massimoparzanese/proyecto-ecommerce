@@ -1,19 +1,15 @@
-import {
-  mockProducts,
-  mockCategories,
-  mockUsers,
-  MOCK_OBJECT_IDS,
-} from '../fixtures/mockData';
+import { mockProducts, mockCategories, mockUsers } from '../fixtures/mockData';
 
 Cypress.Commands.add(
   'loginProgrammatic',
   (email: string, role: 'user' | 'admin' = 'user') => {
+    // Use mocked user data
+    const userData = role === 'admin' ? mockUsers.admin : mockUsers.user;
+
     cy.window().then(win => {
       // Write a persisted redux state so app picks up session via redux-persist
-      const userId =
-        role === 'admin' ? MOCK_OBJECT_IDS.admin1 : MOCK_OBJECT_IDS.user1;
       const auth = {
-        user: { id: userId, name: email.split('@')[0], role },
+        user: userData,
         token: null,
         isLoggedIn: true,
       };
@@ -24,26 +20,61 @@ Cypress.Commands.add(
 );
 
 // Helper command to setup common mocks
-Cypress.Commands.add('mockCommonAPIs', () => {
-  // Mock products list
-  cy.intercept('GET', '**/products', {
-    statusCode: 200,
-    body: mockProducts,
-  }).as('getProducts');
+Cypress.Commands.add(
+  'mockCommonAPIs',
+  (
+    authState?: 'authenticated-user' | 'authenticated-admin' | 'unauthenticated'
+  ) => {
+    // Default to unauthenticated
+    const state = authState || 'unauthenticated';
 
-  // Mock individual products
-  mockProducts.forEach(product => {
-    cy.intercept('GET', `**/products/${product.id}`, {
+    // Mock auth/me based on state
+    if (state === 'authenticated-user') {
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: mockUsers.user,
+        },
+      }).as('authMe');
+    } else if (state === 'authenticated-admin') {
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: mockUsers.admin,
+        },
+      }).as('authMe');
+    } else {
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 401,
+        body: {
+          message: 'No hay sesión activa',
+          data: null,
+        },
+      }).as('authMe');
+    }
+
+    // Mock products list
+    cy.intercept('GET', '**/products', {
       statusCode: 200,
-      body: product,
-    }).as(`getProduct${product.id}`);
-  });
+      body: mockProducts,
+    }).as('getProducts');
 
-  // Mock categories
-  cy.intercept('GET', '**/products/categories', {
-    statusCode: 200,
-    body: mockCategories,
-  }).as('getCategories');
-});
+    // Mock individual products
+    mockProducts.forEach(product => {
+      cy.intercept('GET', `**/products/${product.id}`, {
+        statusCode: 200,
+        body: product,
+      }).as(`getProduct${product.id}`);
+    });
+
+    // Mock categories
+    cy.intercept('GET', '**/products/categories', {
+      statusCode: 200,
+      body: mockCategories,
+    }).as('getCategories');
+  }
+);
 
 export {};

@@ -2,14 +2,16 @@ import { MOCK_OBJECT_IDS } from '../../../fixtures/mockData';
 
 describe('Add Product Page - E2E', () => {
   beforeEach(() => {
-    // Mock common APIs
-    cy.mockCommonAPIs();
-
-    // Setup: Login as admin
+    // Setup: Login as admin programmatically
     cy.loginProgrammatic('admin@test.com', 'admin');
   });
 
   describe('Page Navigation and Access', () => {
+    beforeEach(() => {
+      // Mock common APIs with authenticated admin for these tests
+      cy.mockCommonAPIs('authenticated-admin');
+    });
+
     it('should navigate to add product page directly', () => {
       cy.visit('/admin/product');
       cy.location('pathname').should('include', '/admin/product');
@@ -24,11 +26,34 @@ describe('Add Product Page - E2E', () => {
       // Should redirect or show unauthorized
       cy.location('pathname').should('not.include', '/admin');
     });
+  });
 
+  describe('Loading States', () => {
     it('should show loading state while fetching categories', () => {
+      // Mock auth/me as authenticated admin
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: {
+            id: '507f1f77bcf86cd799439022',
+            name: 'Admin User',
+            email: 'admin@test.com',
+            role: 'admin',
+          },
+        },
+      }).as('authMe');
+
+      // Mock products
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProducts');
+
+      // Mock categories with delay to capture loading state
       cy.intercept('GET', '**/products/categories', req => {
         req.reply({
-          delay: 500,
+          delay: 3000, // Long delay to capture loading state
           statusCode: 200,
           body: ['Test Category'],
         });
@@ -36,16 +61,41 @@ describe('Add Product Page - E2E', () => {
 
       cy.visit('/admin/product');
 
-      // Should show loading in select
-      cy.get('#category').should('contain', 'Cargando categorías...');
+      // Should show loading state - check for loading option
+      cy.get('#category option', { timeout: 2000 })
+        .first()
+        .should('contain', 'Cargando categorías...');
 
+      // After categories load, select should show categories
       cy.wait('@slowCategories');
-      cy.get('#category').should('not.contain', 'Cargando categorías...');
+      cy.get('#category option')
+        .first()
+        .should('contain', 'Selecciona una categoría');
     });
   });
 
   describe('Complete Product Creation Flow', () => {
     beforeEach(() => {
+      // Mock auth/me as authenticated admin
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: {
+            id: '507f1f77bcf86cd799439022',
+            name: 'Admin User',
+            email: 'admin@test.com',
+            role: 'admin',
+          },
+        },
+      }).as('authMe');
+
+      // Mock products
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProducts');
+
       cy.intercept('GET', '**/products/categories', {
         statusCode: 200,
         body: ['Electrónica', 'Ropa', 'Hogar', 'Deportes'],
@@ -157,6 +207,26 @@ describe('Add Product Page - E2E', () => {
 
   describe('Form Validation and Error Handling', () => {
     beforeEach(() => {
+      // Mock auth/me as authenticated admin
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: {
+            id: '507f1f77bcf86cd799439022',
+            name: 'Admin User',
+            email: 'admin@test.com',
+            role: 'admin',
+          },
+        },
+      }).as('authMe');
+
+      // Mock products
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProducts');
+
       cy.intercept('GET', '**/products/categories', {
         statusCode: 200,
         body: ['Electrónica'],
@@ -243,6 +313,26 @@ describe('Add Product Page - E2E', () => {
 
   describe('User Experience Features', () => {
     beforeEach(() => {
+      // Mock auth/me as authenticated admin
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: {
+            id: '507f1f77bcf86cd799439022',
+            name: 'Admin User',
+            email: 'admin@test.com',
+            role: 'admin',
+          },
+        },
+      }).as('authMe');
+
+      // Mock products
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProducts');
+
       cy.intercept('GET', '**/products/categories', {
         statusCode: 200,
         body: ['Electrónica'],
@@ -299,6 +389,26 @@ describe('Add Product Page - E2E', () => {
 
   describe('Responsive Design', () => {
     beforeEach(() => {
+      // Mock auth/me as authenticated admin
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: {
+            id: '507f1f77bcf86cd799439022',
+            name: 'Admin User',
+            email: 'admin@test.com',
+            role: 'admin',
+          },
+        },
+      }).as('authMe');
+
+      // Mock products
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProducts');
+
       cy.intercept('GET', '**/products/categories', {
         statusCode: 200,
         body: ['Electrónica'],

@@ -3,12 +3,12 @@ import { MOCK_OBJECT_IDS } from '../../../fixtures/mockData';
 describe('ProductForm Component', () => {
   beforeEach(() => {
     // Mock common APIs
-    cy.mockCommonAPIs();
+    cy.mockCommonAPIs('authenticated-admin');
 
     // Login as admin to access product form
     cy.loginProgrammatic('admin@test.com', 'admin');
 
-    cy.visit('/admin/products/add');
+    cy.visit('/admin/product');
     cy.wait('@getCategories');
   });
 
@@ -239,10 +239,12 @@ describe('ProductForm Component', () => {
       cy.wait('@createProductError');
 
       // Should show error toast (assuming you're using sonner)
-      cy.contains('Error al crear el producto').should('be.visible');
+      cy.contains('Error al crear el producto', { timeout: 10000 }).should(
+        'be.visible'
+      );
 
-      // Should stay on same page
-      cy.location('pathname').should('include', '/add');
+      // Should stay on same page (/admin/product)
+      cy.location('pathname').should('eq', '/admin/product');
     });
 
     it('should handle network errors gracefully', () => {

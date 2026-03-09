@@ -1,12 +1,13 @@
 describe('Auth - Login', () => {
-  beforeEach(() => {
-    // Mock common APIs
-    cy.mockCommonAPIs();
-
-    cy.visit('/login');
-  });
+  // NO usar beforeEach global - cada test configura sus propios mocks
+  // para evitar que se pisen los intercepts
 
   describe('Page Rendering', () => {
+    beforeEach(() => {
+      cy.mockCommonAPIs('unauthenticated');
+      cy.visit('/login');
+    });
+
     it('should display login form with all fields', () => {
       cy.contains('Iniciar Sesión').should('be.visible');
       cy.get('#email').should('be.visible');
@@ -30,6 +31,11 @@ describe('Auth - Login', () => {
   });
 
   describe('Form Validation', () => {
+    beforeEach(() => {
+      cy.mockCommonAPIs('unauthenticated');
+      cy.visit('/login');
+    });
+
     it('should require email field', () => {
       cy.get('#password').type('password123');
       cy.get('button[type="submit"]').click();
@@ -55,18 +61,50 @@ describe('Auth - Login', () => {
 
   describe('Successful Login', () => {
     it('allows a regular user to log in successfully', () => {
+      const userData = {
+        id: 'user123',
+        name: 'John Doe',
+        email: 'user@example.com',
+        role: 'user',
+      };
+
+      // Mock auth/me for initial visit (unauthenticated)
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 401,
+        body: { message: 'No hay sesión activa', data: null },
+      }).as('authMe');
+
+      // Mock products/categories for post-login navigation
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProducts');
+
+      cy.intercept('GET', '**/products/categories', {
+        statusCode: 200,
+        body: ['Electrónica'],
+      }).as('getCategories');
+
+      // Mock login endpoint
       cy.intercept('POST', '**/auth/login', {
         statusCode: 201,
         body: {
           message: 'Usuario autenticado',
-          data: {
-            id: 'user123',
-            name: 'John Doe',
-            email: 'user@example.com',
-            role: 'user',
-          },
+          data: userData,
         },
       }).as('loginAPI');
+
+      cy.visit('/login');
+      cy.wait('@authMe'); // Initial check
+
+      // After login success, mock auth/me as authenticated
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: userData,
+        },
+      }).as('authMeAuthenticated');
 
       cy.get('#email').type('user@example.com');
       cy.get('#password').type('password');
@@ -91,18 +129,49 @@ describe('Auth - Login', () => {
     });
 
     it('allows admin login and redirects to admin dashboard', () => {
+      const adminData = {
+        id: 'admin123',
+        name: 'Admin User',
+        email: 'admin@tienda.com',
+        role: 'admin',
+      };
+
+      // Mock auth/me for initial visit (unauthenticated)
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 401,
+        body: { message: 'No hay sesión activa', data: null },
+      }).as('authMe');
+
+      // Mock products/categories
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProducts');
+
+      cy.intercept('GET', '**/products/categories', {
+        statusCode: 200,
+        body: ['Electrónica'],
+      }).as('getCategories');
+
       cy.intercept('POST', '**/auth/login', {
         statusCode: 201,
         body: {
           message: 'Usuario autenticado',
-          data: {
-            id: 'admin123',
-            name: 'Admin User',
-            email: 'admin@tienda.com',
-            role: 'admin',
-          },
+          data: adminData,
         },
       }).as('loginAPI');
+
+      cy.visit('/login');
+      cy.wait('@authMe'); // Initial check
+
+      // After login success, mock auth/me as authenticated admin
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: adminData,
+        },
+      }).as('authMeAuthenticated');
 
       cy.get('#email').type('admin@tienda.com');
       cy.get('#password').type('admin');
@@ -116,18 +185,49 @@ describe('Auth - Login', () => {
     });
 
     it('should store user data in Redux persist', () => {
+      const userData = {
+        id: 'user456',
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+        role: 'user',
+      };
+
+      // Mock auth/me for initial visit (unauthenticated)
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 401,
+        body: { message: 'No hay sesión activa', data: null },
+      }).as('authMe');
+
+      // Mock products/categories
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProducts');
+
+      cy.intercept('GET', '**/products/categories', {
+        statusCode: 200,
+        body: ['Electrónica'],
+      }).as('getCategories');
+
       cy.intercept('POST', '**/auth/login', {
         statusCode: 201,
         body: {
           message: 'Usuario autenticado',
-          data: {
-            id: 'user456',
-            name: 'Jane Doe',
-            email: 'jane@example.com',
-            role: 'user',
-          },
+          data: userData,
         },
       }).as('loginAPI');
+
+      cy.visit('/login');
+      cy.wait('@authMe'); // Initial check
+
+      // After login success, mock auth/me as authenticated
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: userData,
+        },
+      }).as('authMeAuthenticated');
 
       cy.get('#email').type('jane@example.com');
       cy.get('#password').type('password123');
@@ -135,9 +235,13 @@ describe('Auth - Login', () => {
 
       cy.wait('@loginAPI');
 
+      // Wait for redirect and auth verification
+      cy.location('pathname', { timeout: 5000 }).should('eq', '/');
+
       // Check localStorage for persisted Redux state
       cy.window().then(win => {
         const persistedState = win.localStorage.getItem('persist:root');
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         expect(persistedState).to.exist;
 
         const parsed = JSON.parse(persistedState!);
@@ -148,12 +252,18 @@ describe('Auth - Login', () => {
           name: 'Jane Doe',
           role: 'user',
         });
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         expect(auth.isLoggedIn).to.be.true;
       });
     });
   });
 
   describe('Error Handling', () => {
+    beforeEach(() => {
+      cy.mockCommonAPIs('unauthenticated');
+      cy.visit('/login');
+    });
+
     it('should show error for invalid credentials', () => {
       cy.intercept('POST', '**/auth/login', {
         statusCode: 401,
@@ -226,6 +336,10 @@ describe('Auth - Login', () => {
   });
 
   describe('Loading State', () => {
+    beforeEach(() => {
+      cy.mockCommonAPIs('unauthenticated');
+    });
+
     it('should show loading state during login request', () => {
       cy.intercept('POST', '**/auth/login', req => {
         req.reply({
@@ -242,6 +356,8 @@ describe('Auth - Login', () => {
           },
         });
       }).as('slowLogin');
+
+      cy.visit('/login');
 
       cy.get('#email').type('user@example.com');
       cy.get('#password').type('password');
@@ -275,6 +391,8 @@ describe('Auth - Login', () => {
         });
       }).as('slowLogin');
 
+      cy.visit('/login');
+
       cy.get('#email').type('user@example.com');
       cy.get('#password').type('password');
 
@@ -289,6 +407,11 @@ describe('Auth - Login', () => {
   });
 
   describe('Navigation', () => {
+    beforeEach(() => {
+      cy.mockCommonAPIs('unauthenticated');
+      cy.visit('/login');
+    });
+
     it('should navigate to register page', () => {
       cy.contains('a', 'Regístrate aquí').click();
       cy.location('pathname').should('eq', '/register');
@@ -300,7 +423,190 @@ describe('Auth - Login', () => {
     });
   });
 
+  describe('Redirect After Login', () => {
+    it('redirects to previous page after successful login (intended destination)', () => {
+      // Clear any existing auth
+      cy.window().then(win => {
+        win.localStorage.clear();
+      });
+
+      const adminData = {
+        id: 'admin123',
+        name: 'Admin User',
+        email: 'admin@tienda.com',
+        role: 'admin',
+      };
+
+      // Mock auth/me for unauthenticated (visit /admin, visit /login)
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 401,
+        body: { message: 'No hay sesión activa', data: null },
+      }).as('authMe');
+
+      // Mock products and categories
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProducts');
+
+      cy.intercept('GET', '**/products/categories', {
+        statusCode: 200,
+        body: ['Electrónica', 'Ropa'],
+      }).as('getCategories');
+
+      // Try to access a protected route (e.g., /admin)
+      cy.visit('/admin');
+      cy.wait('@authMe');
+
+      // Should redirect to login with state
+      cy.location('pathname').should('eq', '/login');
+
+      // Now mock authenticated for post-login
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: adminData,
+        },
+      }).as('authMeAuthenticated');
+
+      // Now perform login
+      cy.intercept('POST', '**/auth/login', {
+        statusCode: 201,
+        body: {
+          message: 'Usuario autenticado',
+          data: adminData,
+        },
+      }).as('loginAPI');
+
+      cy.get('#email').type('admin@tienda.com');
+      cy.get('#password').type('admin');
+      cy.get('button[type="submit"]').click();
+
+      cy.wait('@loginAPI');
+
+      // Should redirect back to /admin (the intended destination)
+      cy.location('pathname', { timeout: 5000 }).should('eq', '/admin');
+    });
+
+    it('redirects to home if no previous page (direct login)', () => {
+      const userData = {
+        id: 'user123',
+        name: 'Regular User',
+        email: 'user@example.com',
+        role: 'user',
+      };
+
+      // Mock auth/me for initial visit (unauthenticated)
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 401,
+        body: { message: 'No hay sesión activa', data: null },
+      }).as('authMe');
+
+      // Mock products/categories
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProducts');
+
+      cy.intercept('GET', '**/products/categories', {
+        statusCode: 200,
+        body: ['Electrónica'],
+      }).as('getCategories');
+
+      cy.intercept('POST', '**/auth/login', {
+        statusCode: 201,
+        body: {
+          message: 'Usuario autenticado',
+          data: userData,
+        },
+      }).as('loginAPI');
+
+      // Direct visit to login page (no previous page)
+      cy.visit('/login');
+      cy.wait('@authMe'); // Initial check
+
+      // After login success, mock auth/me as authenticated
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: userData,
+        },
+      }).as('authMeAuthenticated');
+
+      cy.get('#email').type('user@example.com');
+      cy.get('#password').type('password');
+      cy.get('button[type="submit"]').click();
+
+      cy.wait('@loginAPI');
+
+      // Should redirect to home (no previous page)
+      cy.location('pathname', { timeout: 5000 }).should('eq', '/');
+    });
+
+    it('admin redirects to admin dashboard if no previous page', () => {
+      const adminData = {
+        id: 'admin123',
+        name: 'Admin User',
+        email: 'admin@tienda.com',
+        role: 'admin',
+      };
+
+      // Mock auth/me for initial visit (unauthenticated)
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 401,
+        body: { message: 'No hay sesión activa', data: null },
+      }).as('authMe');
+
+      // Mock products/categories
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProducts');
+
+      cy.intercept('GET', '**/products/categories', {
+        statusCode: 200,
+        body: ['Electrónica'],
+      }).as('getCategories');
+
+      cy.intercept('POST', '**/auth/login', {
+        statusCode: 201,
+        body: {
+          message: 'Usuario autenticado',
+          data: adminData,
+        },
+      }).as('loginAPI');
+
+      cy.visit('/login');
+      cy.wait('@authMe'); // Initial check
+
+      // After login success, mock auth/me as authenticated admin
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: adminData,
+        },
+      }).as('authMeAuthenticated');
+
+      cy.get('#email').type('admin@tienda.com');
+      cy.get('#password').type('admin');
+      cy.get('button[type="submit"]').click();
+
+      cy.wait('@loginAPI');
+
+      // Admin should go to /admin by default
+      cy.location('pathname', { timeout: 5000 }).should('eq', '/admin');
+    });
+  });
+
   describe('Accessibility', () => {
+    beforeEach(() => {
+      cy.mockCommonAPIs('unauthenticated');
+      cy.visit('/login');
+    });
+
     it('should have proper labels for inputs', () => {
       cy.get('label[for="email"]').should('contain', 'Email');
       cy.get('label[for="password"]').should('contain', 'Contraseña');

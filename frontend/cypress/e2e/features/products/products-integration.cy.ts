@@ -195,4 +195,258 @@ describe('Products - Full Integration Flow', () => {
       cy.contains(/Stock:/i, { timeout: 10000 }).should('be.visible');
     });
   });
+
+  describe('Admin Product Management - Delete Flow', () => {
+    const mockProduct = {
+      id: '507f1f77bcf86cd799439011',
+      name: 'Test Product to Delete',
+      description: 'This product will be deleted',
+      price: 99.99,
+      stock: 10,
+      category: 'Electrónica',
+      images: ['https://example.com/product.jpg'],
+    };
+
+    beforeEach(() => {
+      // Login as admin programmatically
+      cy.loginProgrammatic('admin@test.com', 'admin');
+
+      // Mock auth/me as authenticated admin
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 200,
+        body: {
+          message: 'Usuario autenticado',
+          data: {
+            id: '507f1f77bcf86cd799439022',
+            name: 'Admin User',
+            email: 'admin@test.com',
+            role: 'admin',
+          },
+        },
+      }).as('authMe');
+
+      // Mock products list with test product
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [mockProduct],
+      }).as('getProducts');
+
+      // Mock categories
+      cy.intercept('GET', '**/products/categories', {
+        statusCode: 200,
+        body: ['Electrónica'],
+      }).as('getCategories');
+    });
+
+    it('should close dialog when clicking outside ( backdrop)', () => {
+      cy.visit('/admin');
+      cy.wait('@getProducts');
+
+      // Wait for product name to be visible first
+      cy.contains(mockProduct.name, { timeout: 10000 }).should('be.visible');
+
+      // Wait for delete button and click it
+      cy.get('button[aria-label*="Eliminar"]', { timeout: 10000 })
+        .should('be.visible')
+        .first()
+        .click();
+
+      // Confirmation dialog should appear
+      cy.get('dialog').should('be.visible');
+      cy.contains('Eliminar Producto').should('be.visible');
+      cy.contains('¿Estás seguro de que deseas eliminar este producto?').should(
+        'be.visible'
+      );
+    });
+
+    it('should cancel product deletion when clicking cancel button', () => {
+      cy.visit('/admin');
+      cy.wait('@getProducts');
+
+      // Wait for product name to be visible first
+      cy.contains(mockProduct.name, { timeout: 10000 }).should('be.visible');
+
+      // Wait for delete button and click it
+      cy.get('button[aria-label*="Eliminar"]', { timeout: 10000 })
+        .should('be.visible')
+        .first()
+        .click();
+
+      // Wait for dialog to appear with explicit timeout
+      cy.get('dialog', { timeout: 10000 }).should('be.visible');
+      cy.contains('Eliminar Producto', { timeout: 10000 }).should('be.visible');
+
+      // Click cancel
+      cy.contains('button', 'Cancelar').click();
+
+      // Dialog should close
+      cy.get('dialog', { timeout: 10000 }).should('not.exist');
+
+      // Product should still be in the list
+      cy.contains(mockProduct.name).should('be.visible');
+    });
+
+    it('should successfully delete product when confirming deletion', () => {
+      // Mock DELETE request
+      cy.intercept('DELETE', `**/products/${mockProduct.id}`, {
+        statusCode: 200,
+        body: {
+          message: 'Producto eliminado exitosamente',
+        },
+      }).as('deleteProduct');
+
+      cy.visit('/admin');
+      cy.wait('@getProducts');
+
+      // Initial product count
+      cy.contains(mockProduct.name).should('be.visible');
+
+      // Wait for delete button and click it
+      cy.get('button[aria-label*="Eliminar"]', { timeout: 10000 })
+        .should('be.visible')
+        .first()
+        .click();
+
+      // Wait for dialog to appear
+      cy.get('dialog', { timeout: 10000 }).should('be.visible');
+
+      // Mock products list after deletion (empty) - set this AFTER dialog opens
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProductsAfterDelete');
+
+      // Confirm deletion
+      cy.contains('button', 'Eliminar').click();
+
+      // Should send DELETE request
+      cy.wait('@deleteProduct');
+
+      // Should show success toast
+      cy.get('[data-sonner-toast]', { timeout: 5000 })
+        .should('be.visible')
+        .and('contain', 'eliminado exitosamente');
+
+      // Should refetch products
+      cy.wait('@getProductsAfterDelete');
+
+      // Product should be removed from list
+      cy.contains(mockProduct.name).should('not.exist');
+    });
+
+    it('should handle deletion errors gracefully', () => {
+      // Mock DELETE request with error
+      cy.intercept('DELETE', `**/products/${mockProduct.id}`, {
+        statusCode: 500,
+        body: {
+          message: 'Error al eliminar el producto',
+        },
+      }).as('deleteProductError');
+
+      cy.visit('/admin');
+      cy.wait('@getProducts');
+
+      // Wait for product name to be visible first
+      cy.contains(mockProduct.name, { timeout: 10000 }).should('be.visible');
+
+      // Wait for delete button and click it
+      cy.get('button[aria-label*="Eliminar"]', { timeout: 10000 })
+        .should('be.visible')
+        .first()
+        .click();
+
+      // Wait for dialog to appear with explicit timeout
+      cy.get('dialog', { timeout: 10000 }).should('be.visible');
+      cy.contains('Eliminar Producto', { timeout: 10000 }).should('be.visible');
+
+      // Confirm deletion
+      cy.contains('button', 'Eliminar').click();
+
+      // Should send DELETE request
+      cy.wait('@deleteProductError');
+
+      // Should show error toast
+      cy.get('[data-sonner-toast]', { timeout: 5000 })
+        .should('be.visible')
+        .and('contain', 'Error');
+
+      // Dialog should close
+      cy.get('dialog', { timeout: 10000 }).should('not.exist');
+
+      // Product should still be in the list
+      cy.contains(mockProduct.name).should('be.visible');
+    });
+
+    it('should handle network errors during deletion', () => {
+      // Mock network error
+      cy.intercept('DELETE', `**/products/${mockProduct.id}`, {
+        forceNetworkError: true,
+      }).as('networkError');
+
+      cy.visit('/admin');
+      cy.wait('@getProducts');
+
+      // Wait for delete button and click it
+      cy.get('button[aria-label*="Eliminar"]', { timeout: 10000 })
+        .should('be.visible')
+        .first()
+        .click();
+
+      // Wait for dialog to appear
+      cy.get('dialog', { timeout: 10000 }).should('be.visible');
+
+      // Confirm deletion
+      cy.contains('button', 'Eliminar').click();
+
+      // Should show error toast
+      cy.get('[data-sonner-toast]', { timeout: 5000 })
+        .should('be.visible')
+        .invoke('text')
+        .should('match', /error/i);
+
+      // Product should still be in the list
+      cy.contains(mockProduct.name).should('be.visible');
+    });
+
+    it('should show danger styling on confirm button', () => {
+      cy.visit('/admin');
+      cy.wait('@getProducts');
+
+      // Wait for delete button and click it
+      cy.get('button[aria-label*="Eliminar"]', { timeout: 10000 })
+        .should('be.visible')
+        .first()
+        .click();
+
+      // Wait for dialog to appear
+      cy.get('dialog', { timeout: 10000 }).should('be.visible');
+
+      // Confirm button should have danger styling (red or gradient)
+      cy.get('dialog').contains('button', 'Eliminar').should('be.visible');
+    });
+
+    it('should close dialog when clicking outside (backdrop)', () => {
+      cy.visit('/admin');
+      cy.wait('@getProducts');
+
+      // Wait for product name to be visible first
+      cy.contains(mockProduct.name, { timeout: 10000 }).should('be.visible');
+
+      // Wait for delete button and click it
+      cy.get('button[aria-label*="Eliminar"]', { timeout: 10000 })
+        .should('be.visible')
+        .first()
+        .click();
+
+      // Wait for dialog to appear with explicit timeout
+      cy.get('dialog', { timeout: 10000 }).should('be.visible');
+      cy.contains('Eliminar Producto', { timeout: 10000 }).should('be.visible');
+
+      // Click backdrop (outside dialog)
+      cy.get('body').click(0, 0);
+
+      // Dialog should close
+      cy.get('dialog', { timeout: 10000 }).should('not.exist');
+    });
+  });
 });
