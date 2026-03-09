@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/common/button';
 import { Input } from '@/components/common/input';
 import { Label } from '@/components/common/label';
@@ -19,10 +19,14 @@ import apiFetch, { ApiError } from '@/utils/api';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Obtener la ruta desde donde fue redirigido (si existe)
+  const from = location.state?.from?.pathname || null;
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,8 +60,12 @@ export default function Login() {
 
       toast.success('¡Inicio de sesión exitoso!');
 
-      // Redirigir según el rol
-      navigate(role === 'admin' ? '/admin' : '/');
+      // Redirigir a la página previa o según el rol
+      if (from) {
+        navigate(from, { replace: true });
+      } else {
+        navigate(role === 'admin' ? '/admin' : '/', { replace: true });
+      }
     } catch (error) {
       console.error('Login error:', error);
 

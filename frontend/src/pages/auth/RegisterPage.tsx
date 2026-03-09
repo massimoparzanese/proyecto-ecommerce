@@ -73,8 +73,12 @@ export default function Register() {
         let errorMsg = error.message;
 
         // Si hay datos adicionales (como reasons de validación)
-        if (error.data?.reasons && Array.isArray(error.data.reasons)) {
-          errorMsg = error.data.reasons.join('. ');
+        // error.data contiene el objeto JSON completo: { message, data: { reasons: [...] } }
+        if (
+          error.data?.data?.reasons &&
+          Array.isArray(error.data.data.reasons)
+        ) {
+          errorMsg = error.data.data.reasons.join('. ');
         }
 
         toast.error(errorMsg);
