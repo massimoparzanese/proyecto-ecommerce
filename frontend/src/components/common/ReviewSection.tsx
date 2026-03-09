@@ -67,6 +67,7 @@ export default function ReviewSection({
     toast.success('¡Reseña publicada exitosamente!');
   };
 
+  // Reset page when product changes
   useEffect(() => {
     setCurrentPage(1);
   }, [productId]);

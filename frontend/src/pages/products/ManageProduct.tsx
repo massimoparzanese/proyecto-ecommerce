@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/common/button';
 import {
   Card,
@@ -11,28 +11,50 @@ import {
 import { ArrowLeft } from 'lucide-react';
 import ProductForm from '@/components/products/ProductForm';
 import useFetchCategories from '@/hooks/products/useFetchCategories';
+import useFetchProduct from '@/hooks/products/useFetchProduct';
 import { toast } from 'sonner';
 import apiFetch from '@/utils/api';
 import type { ProductFormData } from '@/interfaces/product';
 
-export default function AddProduct() {
+export default function ManageProduct() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEditMode = Boolean(id);
+
+  // Fetch categories
   const {
     categories,
     loading: categoriesLoading,
     refetch: refetchCategories,
   } = useFetchCategories();
-  const [formData, setFormData] = useState<ProductFormData>({
-    name: '',
-    description: '',
-    price: '',
-    category: '',
-    stock: '',
-    images: [''],
-  });
+
+  // Fetch product data if in edit mode
+  const {
+    formData: initialFormData,
+    isLoading,
+    error: fetchError,
+  } = useFetchProduct(id);
+
+  const [formData, setFormData] = useState<ProductFormData>(initialFormData);
   const [isNewCategory, setIsNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const hasInitialized = useRef(false);
+
+  useEffect(() => {
+    if (initialFormData && initialFormData.name && !hasInitialized.current) {
+      setFormData(initialFormData);
+      hasInitialized.current = true;
+    }
+  }, [initialFormData]);
+
+  // Handle fetch errors
+  useEffect(() => {
+    if (fetchError) {
+      toast.error(fetchError);
+      navigate('/admin');
+    }
+  }, [fetchError, navigate]);
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -77,9 +99,12 @@ export default function AddProduct() {
         images: imagesToSend,
       };
 
-      // Hacer POST al backend - apiFetch lanza error automáticamente si !response.ok
-      const response = await apiFetch('/products', {
-        method: 'POST',
+      // Use PUT for edit, POST for create
+      const method = isEditMode ? 'PUT' : 'POST';
+      const url = isEditMode ? `/products/${id}` : '/products';
+
+      const response = await apiFetch(url, {
+        method,
         body: JSON.stringify(productData),
       });
 
@@ -90,11 +115,22 @@ export default function AddProduct() {
         await refetchCategories();
       }
 
-      toast.success('¡Producto agregado exitosamente!');
+      toast.success(
+        isEditMode
+          ? '¡Producto actualizado exitosamente!'
+          : '¡Producto agregado exitosamente!'
+      );
       navigate('/admin');
-    } catch (error: any) {
-      toast.error(error.message || 'Error al crear el producto');
-      console.error('Error creating product:', error);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error desconocido';
+      toast.error(
+        errorMessage ||
+          (isEditMode
+            ? 'Error al actualizar el producto'
+            : 'Error al crear el producto')
+      );
+      console.error('Error managing product:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -129,6 +165,17 @@ export default function AddProduct() {
     }));
   };
 
+  if (isLoading) {
+    return (
+      <div className="from-muted/30 to-background flex min-h-screen items-center justify-center bg-linear-to-br">
+        <div className="text-center">
+          <div className="border-primary mx-auto h-12 w-12 animate-spin rounded-full border-4 border-t-transparent" />
+          <p className="text-muted-foreground mt-4">Cargando producto...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="from-muted/30 to-background min-h-screen bg-linear-to-br">
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
@@ -144,10 +191,12 @@ export default function AddProduct() {
               Volver
             </Button>
             <CardTitle className="from-primary to-accent bg-linear-to-r bg-clip-text pt-8 text-3xl text-transparent">
-              Agregar Nuevo Producto
+              {isEditMode ? 'Editar Producto' : 'Agregar Nuevo Producto'}
             </CardTitle>
             <CardDescription>
-              Completa la información del producto para agregarlo al catálogo
+              {isEditMode
+                ? 'Modifica la información del producto'
+                : 'Completa la información del producto para agregarlo al catálogo'}
             </CardDescription>
           </CardHeader>
           <CardContent>

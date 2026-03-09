@@ -103,6 +103,8 @@ export default function ProductsTable({
                         size="sm"
                         onClick={() => onEdit(product.id)}
                         className="text-primary hover:bg-primary/10 hover:text-primary"
+                        aria-label={`Editar ${product.name}`}
+                        title="Editar producto"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -111,6 +113,8 @@ export default function ProductsTable({
                         size="sm"
                         onClick={() => onDelete(product.id)}
                         className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        aria-label={`Eliminar ${product.name}`}
+                        title="Eliminar producto"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

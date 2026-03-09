@@ -83,3 +83,9 @@ export interface ProductFormProps {
   onImageChange: (index: number, value: string) => void;
   isSubmitting?: boolean;
 }
+
+export interface UseFetchProductReturn {
+  formData: ProductFormData;
+  isLoading: boolean;
+  error: string | null;
+}
