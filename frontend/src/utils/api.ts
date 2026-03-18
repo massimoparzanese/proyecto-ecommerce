@@ -64,13 +64,10 @@ export async function apiFetch(path: string, init?: RequestInit) {
       throw error;
     }
 
-    // Handle network errors
-    if (error instanceof TypeError) {
-      throw new ApiError(0, 'Error de red. Verifica tu conexión.');
-    }
-
-    // Handle other errors
-    throw new ApiError(500, 'Error inesperado al conectar con el servidor.');
+    throw new ApiError(
+      0,
+      error.message || 'Error de red. Verifica tu conexión.'
+    );
   }
 }
 
