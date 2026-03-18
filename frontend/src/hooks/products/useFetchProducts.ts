@@ -1,37 +1,68 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Product } from '@/interfaces/product';
-import apiFetch from '@/utils/api';
+import apiFetch, { ApiError } from '@/utils/api';
 
 export default function useFetchProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  const fetchProducts = useCallback(async (signal?: AbortSignal) => {
+    setLoading(true);
+    setError(null);
 
-    const fetchProducts = async () => {
-      setLoading(true);
+    try {
+      const response = await apiFetch('/products', {
+        signal,
+      });
+
+      let data;
       try {
-        const response = await apiFetch('/products');
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
-        }
-        const data = await response.json();
-        if (isMounted) setProducts(data);
-      } catch (err: any) {
-        if (isMounted) setError(err.message || 'An error occurred');
-      } finally {
-        if (isMounted) setLoading(false);
+        data = await response.json();
+      } catch {
+        throw new Error('Error al procesar la respuesta del servidor');
       }
-    };
 
-    fetchProducts();
+      setProducts(data);
+    } catch (err) {
+      // Ignorar errores de cancelación (AbortError)
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
+      if (signal?.aborted) {
+        return;
+      }
 
-    return () => {
-      isMounted = false;
-    };
+      console.error('Error fetching products:', err);
+
+      if (err instanceof ApiError) {
+        setError(err.message);
+      } else if (err instanceof Error) {
+        setError(err.message || 'Error al cargar productos');
+      } else {
+        setError('Error al cargar productos');
+      }
+    } finally {
+      // Solo actualizar loading si no se canceló
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
+    }
   }, []);
 
-  return { products, loading, error };
+  useEffect(() => {
+    const abortController = new AbortController();
+    fetchProducts(abortController.signal);
+
+    return () => {
+      abortController.abort();
+    };
+  }, [fetchProducts]);
+
+  return {
+    products,
+    loading,
+    error,
+    refetch: () => fetchProducts(),
+  };
 }

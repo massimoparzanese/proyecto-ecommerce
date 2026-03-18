@@ -40,7 +40,7 @@ export default function ReviewSection({
         ).toFixed(1)
       : '0.0';
 
-  const handleSubmitReview = (e: React.FormEvent) => {
+  const handleSubmitReview = (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
     if (!isLoggedIn) {
@@ -67,6 +67,7 @@ export default function ReviewSection({
     toast.success('¡Reseña publicada exitosamente!');
   };
 
+  // Reset page when product changes
   useEffect(() => {
     setCurrentPage(1);
   }, [productId]);

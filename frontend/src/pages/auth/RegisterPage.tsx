@@ -15,7 +15,7 @@ import { ShoppingCart, Mail, Lock, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '@/store/authSlice';
-import apiFetch from '@/utils/api';
+import apiFetch, { ApiError } from '@/utils/api';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -34,53 +34,70 @@ export default function Register() {
       return;
     }
 
+    if (loading) return; // Prevenir doble submit
+
     setLoading(true);
+
     try {
-      const response = await apiFetch('auth/register', {
+      const response = await apiFetch('/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
       });
-      if (response.ok) {
-        const data = await response.json();
-        toast.success('¡Registro exitoso!');
-        const role = (data.data.role as 'user' | 'admin') || 'user';
-        const name = data.data.name || email.split('@')[0];
-        const id = data.data.id || '';
-        dispatch(setCredentials({ user: { id, name, role }, token: null }));
-        navigate(role === 'admin' ? '/admin' : '/');
-      } else {
-        let errorMsg = 'Error al registrar el usuario';
-        try {
-          const errorData = await response.json();
-          if (errorData) {
-            if (typeof errorData === 'string') errorMsg = errorData;
-            else if (errorData.data?.reasons) errorMsg = errorData.data.reasons;
-            else if (errorData.message) errorMsg = errorData.message;
-            else if (errorData.error) errorMsg = errorData.error;
-          }
-        } catch (_) {
-          // ignore json parse errors and fallback to statusText
-          if (response.statusText) errorMsg = response.statusText;
+
+      const result = await response.json();
+
+      // El backend devuelve: { message: string, data: { id, name, email, role } }
+      if (!result.data || !result.data.id || !result.data.role) {
+        throw new Error('Respuesta del servidor incompleta');
+      }
+
+      const { id, name: userName, role } = result.data;
+
+      // Guardar en Redux (el token va en cookie httpOnly)
+      dispatch(
+        setCredentials({
+          user: { id, name: userName, role: role as 'user' | 'admin' },
+          token: null, // El token va en cookie httpOnly
+        })
+      );
+
+      toast.success('¡Registro exitoso!');
+
+      // Redirigir según el rol
+      navigate(role === 'admin' ? '/admin' : '/');
+    } catch (error) {
+      console.error('Register error:', error);
+
+      if (error instanceof ApiError) {
+        // Manejar errores de validación del backend
+        let errorMsg = error.message;
+
+        // Si hay datos adicionales (como reasons de validación)
+        // error.data contiene el objeto JSON completo: { message, data: { reasons: [...] } }
+        if (
+          error.data?.data?.reasons &&
+          Array.isArray(error.data.data.reasons)
+        ) {
+          errorMsg = error.data.data.reasons.join('. ');
         }
 
         toast.error(errorMsg);
+      } else if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('Error al registrar el usuario');
       }
-    } catch (error) {
-      toast.error('Error al registrar el usuario');
-      setLoading(false);
-      return;
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="from-secondary/10 via-accent/10 to-primary/10 flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
+    <div className="from-secondary/10 via-accent/10 to-primary/10 flex min-h-screen items-center justify-center bg-linear-to-br p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-1 text-center">
           <div className="mb-4 flex justify-center">
-            <div className="from-secondary to-accent flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br">
+            <div className="from-secondary to-accent flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br">
               <ShoppingCart className="h-8 w-8 text-white" />
             </div>
           </div>
@@ -155,7 +172,7 @@ export default function Register() {
           <CardFooter className="flex flex-col space-y-4">
             <Button
               type="submit"
-              className="from-secondary to-accent w-full bg-linear-to-r transition-opacity hover:opacity-90"
+              className="from-secondary to-accent w-full bg-linear-to-r transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={loading}
             >
               {loading ? 'Creando cuenta...' : 'Crear Cuenta'}

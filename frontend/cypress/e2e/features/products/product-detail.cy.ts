@@ -1,12 +1,11 @@
 describe('ProductDetail Page', () => {
   beforeEach(() => {
-    // First load homepage to get products
+    // Mock all APIs
+    cy.mockCommonAPIs();
+
     cy.visit('/');
-    cy.get('ul li', { timeout: 10000 }).should('have.length.greaterThan', 0);
-    // Click first product to go to detail
+    cy.wait('@getProducts');
     cy.get('ul li').first().click();
-    cy.url({ timeout: 10000 }).should('include', '/product/');
-    cy.get('h1', { timeout: 10000 }).should('be.visible');
   });
 
   describe('Product Detail Display', () => {
@@ -72,24 +71,36 @@ describe('ProductDetail Page', () => {
 
   describe('Purchase Actions - Logged Out', () => {
     beforeEach(() => {
+      // Clear auth state completely
       cy.window().then(win => {
-        win.localStorage.removeItem('isLoggedIn');
+        win.localStorage.clear();
       });
+
+      // Re-mock APIs for logged out state
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 401,
+        body: { message: 'No autorizado', data: null },
+      }).as('authMeLoggedOut');
+
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProductsLoggedOut');
+
+      cy.reload();
+      cy.wait('@authMeLoggedOut');
     });
 
     it('should show login button when not logged in', () => {
-      cy.reload();
       cy.contains('Iniciar Sesión').should('be.visible');
     });
 
     it('should navigate to login page when clicking login button', () => {
-      cy.reload();
       cy.contains('Iniciar Sesión').click();
       cy.url().should('include', '/login');
     });
 
     it('should show login message text', () => {
-      cy.reload();
       cy.contains('Compra segura y protegida').should('be.visible');
     });
   });
@@ -158,6 +169,26 @@ describe('ProductDetail Page', () => {
   });
 
   describe('Product Not Found', () => {
+    beforeEach(() => {
+      // Mock auth/me to prevent real API calls
+      cy.intercept('GET', '**/auth/me', {
+        statusCode: 401,
+        body: { message: 'No autorizado' },
+      }).as('authMe');
+
+      // Mock products list
+      cy.intercept('GET', '**/products', {
+        statusCode: 200,
+        body: [],
+      }).as('getProducts');
+
+      // Mock nonexistent product to return 404
+      cy.intercept('GET', '**/products/nonexistent', {
+        statusCode: 404,
+        body: { message: 'Producto no encontrado' },
+      }).as('productNotFound');
+    });
+
     it('should show error message when product is not found', () => {
       cy.visit('/product/nonexistent', { failOnStatusCode: false });
       cy.contains('Producto no encontrado').should('be.visible');

@@ -1,8 +1,9 @@
 describe('ProductList Component', () => {
   beforeEach(() => {
+    cy.mockCommonAPIs();
+
     cy.visit('/');
-    // Wait for real products to load from backend
-    cy.get('ul li', { timeout: 10000 }).should('have.length.greaterThan', 0);
+    cy.wait('@getProducts');
   });
 
   describe('Product List Display', () => {
@@ -54,8 +55,8 @@ describe('ProductList Component', () => {
 
     it('should filter products by searching', () => {
       cy.get('input[placeholder="Buscar productos..."]').type('Samsung');
-      // Should show search results or no results
-      cy.get('body').should('exist');
+      cy.contains('Samsung Galaxy Buds').should('be.visible');
+      cy.contains('Monitor LG').should('not.exist');
     });
 
     it('should show no results when search has no matches', () => {
@@ -114,8 +115,9 @@ describe('ProductList Component', () => {
 
   describe('Product Navigation', () => {
     it('should navigate to product detail when product is clicked', () => {
+      // mockCommonAPIs ya incluye los mocks de productos individuales
       cy.get('li').first().click();
-      cy.url({ timeout: 10000 }).should('include', '/product/');
+      cy.url().should('include', '/product/');
     });
 
     it('should pass product data when navigating', () => {
