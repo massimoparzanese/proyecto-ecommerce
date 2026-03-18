@@ -15,6 +15,7 @@ import { ShoppingCart, Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '@/store/authSlice';
+import { clearCart } from '@/store/cartSlice';
 import apiFetch, { ApiError } from '@/utils/api';
 
 export default function Login() {
@@ -51,6 +52,7 @@ export default function Login() {
       const { id, name, role } = result.data;
 
       // Guardar en Redux (el token va en cookie httpOnly)
+      dispatch(clearCart());
       dispatch(
         setCredentials({
           user: { id, name, role: role as 'user' | 'admin' },

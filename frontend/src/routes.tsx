@@ -5,6 +5,7 @@ import NotFound from './pages/NotFoundPage';
 import Register from './pages/auth/RegisterPage';
 import Login from './pages/auth/LoginPage';
 import ProductDetail from './pages/products/ProductDetailPage';
+import CartPage from './pages/products/CartPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageProduct from './pages/products/ManageProduct';
 import { AdminRoute, PublicOnlyRoute } from './components/auth';
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
           </PublicOnlyRoute>
         ),
       },
+      { path: 'cart', element: <CartPage /> },
       { path: 'product/:id', element: <ProductDetail /> },
       { path: '*', element: <NotFound /> },
       {

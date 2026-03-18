@@ -13,7 +13,10 @@ Cypress.Commands.add(
         token: null,
         isLoggedIn: true,
       };
-      const root = { auth: JSON.stringify(auth) };
+      const cart = {
+        items: {},
+      };
+      const root = { auth: JSON.stringify(auth), cart: JSON.stringify(cart) };
       win.localStorage.setItem('persist:root', JSON.stringify(root));
     });
   }

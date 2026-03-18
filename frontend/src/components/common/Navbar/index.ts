@@ -4,3 +4,4 @@ export { UserMenuButton } from './UserMenuButton';
 export { GuestMenuItems } from './GuestMenuItems';
 export { AdminMenuItems } from './AdminMenuItems';
 export { AuthenticatedMenuItems } from './AuthenticatedMenuItems';
+export { CartPreview } from './CartPreview';

@@ -1,4 +1,4 @@
-import { NavbarLogo, UserMenu } from './Navbar/index';
+import { NavbarLogo, UserMenu, CartPreview } from './Navbar/index';
 
 /**
  * Navbar principal de la aplicación
@@ -11,7 +11,10 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <NavbarLogo />
-          <UserMenu />
+          <div className="flex items-center gap-2">
+            <CartPreview />
+            <UserMenu />
+          </div>
         </div>
       </div>
     </nav>
