@@ -1,7 +1,8 @@
-import { LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { LogOut, ShoppingCart } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { clearCredentials } from '@/store/authSlice';
+import { clearCart } from '@/store/cartSlice';
 import apiFetch from '@/utils/api';
 import { toast } from 'sonner';
 import { useIsAdmin } from '@/hooks/auth/useAuth';
@@ -30,6 +31,7 @@ export const AuthenticatedMenuItems = ({
         toast.error('Error al cerrar sesión');
       } else {
         toast.success('Sesión cerrada');
+        dispatch(clearCart());
         dispatch(clearCredentials());
         navigate('/');
         onClose();
@@ -41,6 +43,19 @@ export const AuthenticatedMenuItems = ({
 
   return (
     <>
+      {!isAdmin && (
+        <Link
+          to="/cart"
+          onClick={onClose}
+          className="hover:bg-muted/50 flex items-center gap-2 px-4 py-2 transition-colors"
+        >
+          <ShoppingCart className="h-4 w-4" />
+          Ver carrito
+        </Link>
+      )}
+
+      {!isAdmin && <div className="border-border my-1 border-t" />}
+
       {isAdmin && <AdminMenuItems />}
 
       {isAdmin && <div className="border-border my-1 border-t" />}
