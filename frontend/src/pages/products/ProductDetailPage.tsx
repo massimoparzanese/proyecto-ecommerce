@@ -1,6 +1,5 @@
 import { useNavigate, useParams } from 'react-router';
 import { useState, useEffect } from 'react';
-import Navbar from '@/components/common/Navbar';
 import { Button } from '@/components/common/button';
 import { Card, CardContent } from '@/components/common/card';
 import ReviewSection from '@/components/common/ReviewSection';
@@ -8,10 +7,15 @@ import type { Review, Product } from '@/interfaces/product';
 import { ShoppingCart, ArrowLeft, Package, Shield, Truck } from 'lucide-react';
 import { toast } from 'sonner';
 import apiFetch from '@/utils/api';
+import { useAuth } from '@/hooks/auth/useAuth';
+import { useDispatch } from 'react-redux';
+import { addItem } from '@/store/cartSlice';
 
 export default function ProductDetail() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const isLoggedIn = useAuth();
+  const dispatch = useDispatch();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,7 +53,6 @@ export default function ProductDetail() {
   if (loading) {
     return (
       <div className="bg-background min-h-screen">
-        <Navbar />
         <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
           <p className="text-muted-foreground">Cargando producto...</p>
         </div>
@@ -60,7 +63,6 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <div className="bg-background min-h-screen">
-        <Navbar />
         <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
           <h2 className="mb-4 text-2xl">Producto no encontrado</h2>
           <Button onClick={() => navigate('/')}>Volver al inicio</Button>
@@ -82,18 +84,23 @@ export default function ProductDetail() {
   };
 
   const handleBuyClick = () => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-
     if (!isLoggedIn) {
       toast.error('Debes iniciar sesión para comprar');
-      navigate('/login');
+      navigate('/login', {
+        state: {
+          from: {
+            pathname: `/product/${id}`,
+          },
+        },
+      });
     } else {
+      dispatch(addItem(product));
       toast.success('¡Producto agregado al carrito!');
     }
   };
 
   return (
-    <div className="from-muted/30 to-background min-h-screen bg-gradient-to-br">
+    <div className="from-muted/30 to-background min-h-screen bg-linear-to-br">
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <Button
           variant="outline"
@@ -129,7 +136,7 @@ export default function ProductDetail() {
               </div>
               <h1 className="mb-4 text-4xl">{product.name}</h1>
               <div className="mb-6 flex items-baseline gap-4">
-                <span className="from-primary to-accent bg-gradient-to-r bg-clip-text text-5xl font-semibold text-transparent">
+                <span className="from-primary to-accent bg-linear-to-r bg-clip-text text-5xl font-semibold text-transparent">
                   ${product.price.toFixed(2)}
                 </span>
                 {product.stock < 10 && (
@@ -173,19 +180,19 @@ export default function ProductDetail() {
 
             {/* Botón de compra o iniciar sesión */}
             <div className="space-y-3">
-              {localStorage.getItem('isLoggedIn') === 'true' ? (
+              {isLoggedIn ? (
                 <Button
                   onClick={handleBuyClick}
-                  className="from-primary to-accent h-12 w-full bg-gradient-to-r text-lg transition-opacity hover:opacity-90"
+                  className="from-primary to-accent h-12 w-full bg-linear-to-r text-lg transition-opacity hover:opacity-90"
                   disabled={product.stock === 0}
                 >
                   <ShoppingCart className="mr-2 h-5 w-5" />
-                  {product.stock === 0 ? 'Agotado' : 'Comprar Ahora'}
+                  {product.stock === 0 ? 'Agotado' : 'Agregar al carrito'}
                 </Button>
               ) : (
                 <Button
-                  onClick={() => navigate('/login')}
-                  className="from-primary to-accent h-12 w-full bg-gradient-to-r text-lg transition-opacity hover:opacity-90"
+                  onClick={handleBuyClick}
+                  className="from-primary to-accent h-12 w-full bg-linear-to-r text-lg transition-opacity hover:opacity-90"
                 >
                   Iniciar Sesión
                 </Button>
