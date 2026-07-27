@@ -21,7 +21,7 @@ cd backend
 
 if [ ! -d "node_modules" ]; then
   echo -e "${YELLOW}Installing backend dependencies...${NC}"
-  npm install
+  pnpm install
 fi
 
 echo -e "${YELLOW}Starting database with Docker...${NC}"
@@ -45,7 +45,7 @@ for i in {1..30}; do
 done
 
 echo -e "${YELLOW}Seeding database...${NC}"
-npm run seed
+pnpm run seed
 
 echo -e "${GREEN}✓ Backend setup complete${NC}"
 echo ""
@@ -56,7 +56,7 @@ cd ../frontend
 
 if [ ! -d "node_modules" ]; then
   echo -e "${YELLOW}Installing frontend dependencies...${NC}"
-  npm install
+  pnpm install
 fi
 
 echo -e "${GREEN}✓ Frontend setup complete${NC}"
@@ -68,12 +68,12 @@ echo ""
 
 cd ../backend
 echo -e "${YELLOW}Starting backend on http://localhost:3000${NC}"
-npm run dev &
+pnpm run dev &
 BACKEND_PID=$!
 
 cd ../frontend
 echo -e "${YELLOW}Starting frontend on http://localhost:5173${NC}"
-npm run dev &
+pnpm run dev &
 FRONTEND_PID=$!
 
 echo ""

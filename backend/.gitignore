@@ -3,6 +3,7 @@
 .env.local
 .env.*.local
 
+
 # Dependencies
 node_modules/
 
@@ -35,3 +36,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 .cache/
+
+
+.agents
+skills-lock.json

@@ -93,7 +93,7 @@ ecommerce/
 
 - Node.js >= 18.x
 - Docker y Docker Compose
-- npm o yarn
+- pnpm
 
 ### 1. Clonar el repositorio
 
@@ -108,7 +108,7 @@ cd ecommerce
 cd backend
 
 # Instalar dependencias
-npm install
+pnpm install
 
 # Copiar variables de entorno
 cp .env.example .env
@@ -124,7 +124,7 @@ cp .env.example .env
 docker compose up -d
 
 # Iniciar servidor de desarrollo
-npm run dev
+pnpm run dev
 ```
 
 El backend estará disponible en `http://localhost:4000`
@@ -135,10 +135,10 @@ El backend estará disponible en `http://localhost:4000`
 cd frontend
 
 # Instalar dependencias
-npm install
+pnpm install
 
 # Iniciar servidor de desarrollo
-npm run dev
+pnpm run dev
 ```
 
 El frontend estará disponible en `http://localhost:5173`
@@ -148,28 +148,28 @@ El frontend estará disponible en `http://localhost:5173`
 ### Backend
 
 ```bash
-npm run dev          # Iniciar servidor de desarrollo con hot-reload
-npm run build        # Compilar TypeScript a JavaScript
-npm start            # Iniciar servidor en producción
-npm run lint         # Verificar código con ESLint
-npm run lint:fix     # Corregir errores de linting automáticamente
-npm run format       # Formatear código con Prettier
-npm run type-check   # Verificar tipos de TypeScript
+pnpm run dev          # Iniciar servidor de desarrollo con hot-reload
+pnpm run build        # Compilar TypeScript a JavaScript
+pnpm start            # Iniciar servidor en producción
+pnpm run lint         # Verificar código con ESLint
+pnpm run lint:fix     # Corregir errores de linting automáticamente
+pnpm run format       # Formatear código con Prettier
+pnpm run type-check   # Verificar tipos de TypeScript
 ```
 
 ### Frontend
 
 ```bash
-npm run dev          # Iniciar servidor de desarrollo
-npm run build        # Build para producción
-npm run preview      # Preview del build de producción
-npm run lint         # Verificar código con ESLint
-npm run lint:fix     # Corregir errores de linting automáticamente
-npm run format       # Formatear código con Prettier
-npm run type-check   # Verificar tipos de TypeScript
-npm run cypress:open # Abrir Cypress en modo interactivo
-npm run cypress:run  # Ejecutar tests de Cypress en modo headless
-npm run test:e2e     # Ejecutar tests E2E completos
+pnpm run dev          # Iniciar servidor de desarrollo
+pnpm run build        # Build para producción
+pnpm run preview      # Preview del build de producción
+pnpm run lint         # Verificar código con ESLint
+pnpm run lint:fix     # Corregir errores de linting automáticamente
+pnpm run format       # Formatear código con Prettier
+pnpm run type-check   # Verificar tipos de TypeScript
+pnpm run cypress:open # Abrir Cypress en modo interactivo
+pnpm run cypress:run  # Ejecutar tests de Cypress en modo headless
+pnpm run test:e2e     # Ejecutar tests E2E completos
 ```
 
 ## 🧪 Testing
@@ -182,10 +182,10 @@ npm run test:e2e     # Ejecutar tests E2E completos
 cd frontend
 
 # Modo interactivo (recomendado para desarrollo)
-npm run cypress:open
+pnpm run cypress:open
 
 # Modo headless (para CI/CD)
-npm run test:e2e
+pnpm run test:e2e
 ```
 
 **Backend:**
@@ -194,7 +194,7 @@ npm run test:e2e
 cd backend
 
 # Tests de API
-npm run cypress:open
+pnpm run cypress:open
 ```
 
 ## 🐳 Docker
