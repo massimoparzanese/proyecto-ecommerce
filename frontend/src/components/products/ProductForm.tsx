@@ -32,7 +32,7 @@ export default function ProductForm({
           placeholder="Ej: Smartphone Galaxy X"
           value={formData.name}
           onChange={e => onChange('name', e.target.value)}
-          className="border-2! border-black! dark:border-white!"
+            className="border-border bg-input-background focus:ring-ring focus-visible:ring-1"
           required
         />
       </div>
@@ -45,7 +45,7 @@ export default function ProductForm({
           value={formData.description}
           onChange={e => onChange('description', e.target.value)}
           rows={4}
-          className="border-2! border-black! dark:border-white!"
+            className="border-border bg-input-background focus:ring-ring focus-visible:ring-1"
           required
         />
       </div>
@@ -62,7 +62,7 @@ export default function ProductForm({
             placeholder="99.99"
             value={formData.price}
             onChange={e => onChange('price', e.target.value)}
-            className="border-2! border-black! dark:border-white!"
+              className="border-border bg-input-background focus:ring-ring focus-visible:ring-1"
             required
           />
         </div>
@@ -76,7 +76,7 @@ export default function ProductForm({
             placeholder="50"
             value={formData.stock}
             onChange={e => onChange('stock', e.target.value)}
-            className="border-2! border-black! dark:border-white!"
+              className="border-border bg-input-background focus:ring-ring focus-visible:ring-1"
             required
           />
         </div>
@@ -104,7 +104,7 @@ export default function ProductForm({
               placeholder="Ej: Electrónica, Ropa, etc."
               value={newCategoryName}
               onChange={e => onNewCategoryChange(e.target.value)}
-              className="border-2! border-black! dark:border-white!"
+                className="border-border bg-input-background focus:ring-ring focus-visible:ring-1"
               required
             />
             <p className="text-muted-foreground text-xs">
@@ -116,7 +116,7 @@ export default function ProductForm({
             id="category"
             value={formData.category}
             onChange={e => onChange('category', e.target.value)}
-            className="border-2! border-black! dark:border-white!"
+              className="border-border bg-input-background focus:ring-ring focus-visible:ring-1"
             required
             disabled={categoriesLoading}
           >
@@ -161,7 +161,7 @@ export default function ProductForm({
                     placeholder="https://ejemplo.com/imagen.jpg"
                     value={image}
                     onChange={e => onImageChange(index, e.target.value)}
-                    className="border-2! border-black! pl-10 dark:border-white!"
+                    className="border-border bg-input-background focus:ring-ring pl-10 focus-visible:ring-1"
                   />
                 </div>
                 {formData.images.length > 1 && (
@@ -214,7 +214,7 @@ export default function ProductForm({
             type="button"
             variant="outline"
             disabled={isSubmitting}
-            className="w-full border-2 border-gray-300 bg-white text-gray-900 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+            className="border-border hover:bg-muted w-full border bg-transparent text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             Cancelar
           </Button>

@@ -47,11 +47,11 @@ export default function ConfirmDialog({
       {/* Dialog */}
       <dialog
         open
-        className="relative z-10 m-0 w-full max-w-md rounded-xl border-2 border-black bg-white p-0 shadow-2xl dark:border-white dark:bg-gray-900"
+        className="relative z-10 m-0 w-full max-w-md rounded-xl border border-border bg-card p-0 shadow-2xl text-card-foreground"
         onClick={e => e.stopPropagation()}
       >
         {/* Header with Icon */}
-        <header className="border-b-2 border-black p-6 dark:border-white">
+        <header className="border-b border-border p-6">
           <div className="flex items-center gap-4">
             <div
               className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${iconBgColors[variant]}`}
@@ -68,17 +68,17 @@ export default function ConfirmDialog({
         </section>
 
         {/* Actions */}
-        <footer className="border-t-2 border-black p-6 dark:border-white">
+        <footer className="border-t border-border p-6">
           <div className="flex justify-end gap-3">
             <Button
               variant="outline"
               onClick={onCancel}
-              className="border-2 border-black text-white dark:border-white"
+              className="border border-border text-foreground hover:bg-muted"
             >
               {cancelLabel}
             </Button>
             <Button
-              className={`${variantColors[variant]} border-2 border-black dark:border-white`}
+              className={`${variantColors[variant]} border border-transparent`}
               onClick={onConfirm}
             >
               {confirmLabel}

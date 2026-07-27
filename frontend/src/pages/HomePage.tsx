@@ -32,7 +32,7 @@ export default function Home() {
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             placeholder="Buscar productos..."
-            className="bg-background placeholder:text-muted-foreground w-full max-w-lg rounded border border-gray-200 px-3 py-2 text-sm shadow-sm"
+            className="bg-background placeholder:text-muted-foreground focus-visible:ring-ring w-full max-w-lg rounded-md border border-border px-4 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1"
           />
         </div>
         {loading ? (

@@ -29,7 +29,7 @@ export const UserMenu = () => {
       <UserMenuButton onClick={toggleMenu} isExpanded={showMenu} />
 
       {showMenu && (
-        <div className="border-border absolute right-0 z-50 mt-1 w-56 rounded-lg border bg-white py-2 shadow-lg">
+        <div className="border-border text-popover-foreground absolute right-0 z-50 mt-1 w-56 rounded-lg border bg-popover py-2 shadow-lg">
           {isLoggedIn ? (
             <AuthenticatedMenuItems onClose={closeMenu} />
           ) : (

@@ -65,7 +65,7 @@ export const CartPreview = () => {
       </button>
 
       {open && (
-        <div className="border-border absolute right-0 z-50 mt-2 w-80 rounded-lg border bg-white p-4 shadow-lg">
+        <div className="border-border text-popover-foreground absolute right-0 z-50 mt-2 w-80 rounded-lg border bg-popover p-4 shadow-lg">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold">Tu carrito</h3>
             {!isEmpty && (

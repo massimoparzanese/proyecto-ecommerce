@@ -8,7 +8,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Link to={`/product/${product.id}`}>
       <Card className="group cursor-pointer overflow-hidden transition-shadow hover:shadow-lg">
-        <div className="relative aspect-square overflow-hidden bg-gray-50">
+        <div className="relative aspect-square overflow-hidden bg-muted/50">
           {product.images && product.images.length > 0 ? (
             <img
               src={product.images[0]}
